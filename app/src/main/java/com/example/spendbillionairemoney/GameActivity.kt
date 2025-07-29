@@ -23,6 +23,8 @@ import com.google.gson.Gson
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.launch
 import java.io.File
 
 data class ItemState(
@@ -92,6 +94,8 @@ class GameActivity : ComponentActivity() {
             var remainingMoney by remember { mutableStateOf(netWorth) }
             var elapsedTime by remember { mutableStateOf(0) }
             val imageUri = remember { intent.getStringExtra("imageUri") }
+            val snackbarHostState = remember { SnackbarHostState() }
+            val scope = rememberCoroutineScope()
 
             // Independent timer
             LaunchedEffect(Unit) {
@@ -146,11 +150,23 @@ class GameActivity : ComponentActivity() {
                 }
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
+            Scaffold(
+                snackbarHost = {
+                    SnackbarHost(hostState = snackbarHostState) {
+                        Snackbar(
+                            snackbarData = it,
+                            containerColor = Color(0xFFFF3B30),
+                            contentColor = Color.White
+                        )
+                    }
+                }
+            ) { innerPadding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .padding(16.dp)
+                ) {
                 // Exit icon at top-left
                 Box(modifier = Modifier.fillMaxWidth()) {
                     IconButton(
@@ -257,6 +273,7 @@ class GameActivity : ComponentActivity() {
                 ) {
                     items(itemStates) { itemState ->
                         val item = itemState.item
+                        // var showInsufficientFunds by remember { mutableStateOf(false) }
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -283,6 +300,14 @@ class GameActivity : ComponentActivity() {
                                     Text(text = "Quantity: ${itemState.quantity.value}", style = MaterialTheme.typography.bodySmall)
 
                                     Spacer(modifier = Modifier.height(8.dp))
+                                    // if (showInsufficientFunds) {
+                                    //     Text(
+                                    //         text = "Insufficient money!",
+                                    //         color = Color.Red,
+                                    //         style = MaterialTheme.typography.bodySmall,
+                                    //         modifier = Modifier.padding(bottom = 4.dp)
+                                    //     )
+                                    // }
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                                         modifier = Modifier.fillMaxWidth()
@@ -292,6 +317,17 @@ class GameActivity : ComponentActivity() {
                                                 if (remainingMoney >= item.price) {
                                                     remainingMoney -= item.price
                                                     itemState.quantity.value += 1
+                                                    // showInsufficientFunds = false
+                                                } else {
+                                                    // showInsufficientFunds = true
+                                                    scope.launch {
+                                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                                        val snackbarJob = launch {
+                                                            snackbarHostState.showSnackbar("Insufficient money!", duration = SnackbarDuration.Indefinite)
+                                                        }
+                                                        delay(1000)
+                                                        snackbarHostState.currentSnackbarData?.dismiss()
+                                                    }
                                                 }
                                             },
                                             modifier = Modifier.weight(1f)
@@ -337,6 +373,7 @@ class GameActivity : ComponentActivity() {
                     }
                 )
             }
+        }
         }
 
         onBackPressedDispatcher.addCallback(this) {

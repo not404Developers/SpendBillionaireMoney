@@ -30,6 +30,7 @@ import coil.compose.AsyncImage
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -37,6 +38,8 @@ class MainActivity : ComponentActivity() {
     val customBillionaireState = mutableStateOf(emptyList<Billionaire>())
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        val splashScreen = installSplashScreen()
 
         super.onCreate(savedInstanceState)
 
@@ -92,9 +95,9 @@ fun BillionaireSelectionScreen(
 ) {
     val context = LocalContext.current
     val defaultBillionaires = listOf(
-        Billionaire("Bill Gates", 120_000_000_000, R.drawable.bill_gates),
-        Billionaire("Elon Musk", 40_000_000_000, R.drawable.elon_musk),
-        Billionaire("Jeff Bezos", 100_000_000_000, R.drawable.jeff_bezos)
+        Billionaire("Bill Gates", 180_000_000_000, R.drawable.bill_gates),
+        Billionaire("Elon Musk", 380_000_000_000, R.drawable.elon_musk),
+        Billionaire("Jeff Bezos", 230_000_000_000, R.drawable.jeff_bezos)
     )
     val billionaires = listOf(Billionaire("Add New", 0, R.drawable.ic_add)) +
             customBillionaires +
