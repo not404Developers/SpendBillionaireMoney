@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.addCallback
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,9 +16,14 @@ import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import com.example.spendbillionairemoney.model.Item
+import androidx.compose.foundation.lazy.LazyColumn
 import com.example.spendbillionairemoney.SummaryItem
 import com.google.gson.reflect.TypeToken
 import com.google.gson.Gson
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import java.io.File
 
 data class ItemState(
     val item: Item,
@@ -147,53 +151,106 @@ class GameActivity : ComponentActivity() {
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Enhanced billionaire image handling: check for local imagePath, then imageUri, then fallback
-                when {
-                    !imagePath.isNullOrEmpty() -> {
-                        val imageFile = java.io.File(imagePath)
-                        if (imageFile.exists()) {
-                            AsyncImage(
-                                model = imageFile,
-                                contentDescription = name,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(160.dp)
-                                    .padding(bottom = 16.dp)
-                            )
-                        }
-                    }
-                    !imageUri.isNullOrEmpty() -> {
-                        AsyncImage(
-                            model = imageUri,
-                            contentDescription = name,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(160.dp)
-                                .padding(bottom = 16.dp)
-                        )
-                    }
-                    else -> {
-                        Image(
-                            painter = painterResource(id = imageResId),
-                            contentDescription = name,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(160.dp)
-                                .padding(bottom = 16.dp)
+                // Exit icon at top-left
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    IconButton(
+                        onClick = { showExitDialog = true },
+                        modifier = Modifier.align(Alignment.TopStart)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_close),
+                            contentDescription = "Exit",
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(140.dp)
+                            .clip(CircleShape)
+                    ) {
+                        when {
+                            !imagePath.isNullOrEmpty() -> {
+                                val imageFile = File(imagePath)
+                                if (imageFile.exists()) {
+                                    AsyncImage(
+                                        model = imageFile,
+                                        contentDescription = name,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                            }
+                            !imageUri.isNullOrEmpty() -> {
+                                AsyncImage(
+                                    model = imageUri,
+                                    contentDescription = name,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                            else -> {
+                                Image(
+                                    painter = painterResource(id = imageResId),
+                                    contentDescription = name,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = name ?: "Unknown",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Text(
-                    text = "Money Left: $${remainingMoney}",
-                    style = MaterialTheme.typography.headlineSmall
-                )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Money Left: $${remainingMoney}",
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
 
-                Text(
-                    text = "Time: ${elapsedTime}s",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
-                )
+                        Divider(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(1.dp)
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Time: ${elapsedTime}s",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
 
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -203,41 +260,55 @@ class GameActivity : ComponentActivity() {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp)
+                                .padding(vertical = 8.dp),
+                            shape = MaterialTheme.shapes.medium,
+                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                         ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
                                 Image(
                                     painter = painterResource(id = item.imageResId),
                                     contentDescription = item.name,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(100.dp)
+                                        .height(220.dp)
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(text = item.name, style = MaterialTheme.typography.titleMedium)
-                                Text(text = "Price: $${item.price}", style = MaterialTheme.typography.bodyMedium)
-                                Text(text = "Quantity: ${itemState.quantity.value}", style = MaterialTheme.typography.bodySmall)
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp)
+                                ) {
+                                    Text(text = item.name, style = MaterialTheme.typography.titleMedium)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(text = "Price: $${item.price}", style = MaterialTheme.typography.bodyMedium)
+                                    Text(text = "Quantity: ${itemState.quantity.value}", style = MaterialTheme.typography.bodySmall)
 
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Button(
-                                        onClick = {
-                                            if (remainingMoney >= item.price) {
-                                                remainingMoney -= item.price
-                                                itemState.quantity.value += 1
-                                            }
-                                        }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text("Buy")
-                                    }
-                                    Button(
-                                        onClick = {
-                                            if (itemState.quantity.value > 0) {
-                                                remainingMoney += item.price
-                                                itemState.quantity.value -= 1
-                                            }
+                                        Button(
+                                            onClick = {
+                                                if (remainingMoney >= item.price) {
+                                                    remainingMoney -= item.price
+                                                    itemState.quantity.value += 1
+                                                }
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("Buy")
                                         }
-                                    ) {
-                                        Text("Sell")
+                                        Button(
+                                            onClick = {
+                                                if (itemState.quantity.value > 0) {
+                                                    remainingMoney += item.price
+                                                    itemState.quantity.value -= 1
+                                                }
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("Sell")
+                                        }
                                     }
                                 }
                             }

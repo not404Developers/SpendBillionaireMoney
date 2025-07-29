@@ -6,13 +6,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -39,16 +43,33 @@ class HistoryActivity : ComponentActivity() {
             SpendBillionaireMoneyTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Button(
-                            onClick = {
-                                startActivity(Intent(this@HistoryActivity, MainActivity::class.java))
-                                finish()
-                            },
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp)
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                .padding(12.dp)
                         ) {
-                            Text("Home")
+                            IconButton(
+                                onClick = {
+                                    startActivity(Intent(this@HistoryActivity, MainActivity::class.java))
+                                    finish()
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_home),
+                                    contentDescription = "Home",
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "History",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         }
 
                         // Top Scores section
@@ -59,33 +80,6 @@ class HistoryActivity : ComponentActivity() {
                             .filterNotNull()
                             .sortedBy { it.timeTaken }
 
-                        if (topScores.isNotEmpty()) {
-                            Text(
-                                text = "Top Scores",
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-
-                            topScores.forEach { topEntry ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = topEntry.billionaireName ?: "Unknown",
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                    Text(
-                                        text = "${topEntry.timeTaken} sec",
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-
                         if (history.isEmpty()) {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -95,6 +89,44 @@ class HistoryActivity : ComponentActivity() {
                             }
                         } else {
                             LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                if (topScores.isNotEmpty()) {
+                                    item {
+                                        Card(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(bottom = 16.dp),
+                                            elevation = CardDefaults.cardElevation(4.dp),
+                                            shape = RoundedCornerShape(12.dp),
+                                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                        ) {
+                                            Column(modifier = Modifier.padding(16.dp)) {
+                                                Text(
+                                                    text = "Top Scores",
+                                                    style = MaterialTheme.typography.titleLarge,
+                                                    modifier = Modifier.padding(bottom = 8.dp)
+                                                )
+                                                topScores.forEach { topEntry ->
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .padding(vertical = 4.dp),
+                                                        horizontalArrangement = Arrangement.SpaceBetween
+                                                    ) {
+                                                        Text(
+                                                            text = topEntry.billionaireName ?: "Unknown",
+                                                            style = MaterialTheme.typography.bodyLarge
+                                                        )
+                                                        Text(
+                                                            text = "${topEntry.timeTaken} sec",
+                                                            style = MaterialTheme.typography.bodyLarge
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 items(history) { entry ->
                                     HistoryCard(entry = entry)
                                 }
@@ -116,21 +148,20 @@ fun HistoryCard(entry: HistoryEntry) {
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Billionaire Info Row
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Billionaire Image
+                // Larger centered billionaire image
                 Box(
                     modifier = Modifier
-                        .size(64.dp)
-                        .padding(end = 12.dp)
+                        .size(100.dp)
+                        .clip(CircleShape)
                 ) {
                     val imageModel: Any = when {
-                        !entry.billionaireImagePath.isNullOrEmpty() && File(entry.billionaireImagePath).exists() -> {
-                            File(entry.billionaireImagePath)
-                        }
+                        !entry.billionaireImagePath.isNullOrEmpty() && File(entry.billionaireImagePath).exists() -> File(entry.billionaireImagePath)
                         entry.billionaireImage != 0 -> entry.billionaireImage
                         else -> R.drawable.placeholder
                     }
@@ -145,15 +176,38 @@ fun HistoryCard(entry: HistoryEntry) {
                     )
                 }
 
-                // Billionaire Details
-                Column(modifier = Modifier.weight(1f)) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Centered billionaire name
+                Text(
+                    text = entry.billionaireName ?: "Unknown",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Money and time row with divider
+                val totalSpent = entry.items?.sumOf { it.price * it.quantity } ?: 0
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = entry.billionaireName ?: "Unknown",
-                        style = MaterialTheme.typography.titleMedium
+                        text = "Spent: ${formatPrice(totalSpent)}",
+                        style = MaterialTheme.typography.bodyLarge
                     )
-                    Text(text = "Time: ${entry.timeTaken} sec")
-                    val totalSpent = entry.items?.sumOf { it.price * it.quantity } ?: 0
-                    Text(text = "Total: $${"%,d".format(totalSpent)}")
+                    Box(
+                        modifier = Modifier
+                            .height(20.dp)
+                            .width(1.dp)
+                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    )
+                    Text(
+                        text = "Time: ${entry.timeTaken} sec",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
             }
 
@@ -220,7 +274,7 @@ fun HistoryCard(entry: HistoryEntry) {
                     }
 
                     // Item Total Price
-                    Text("$${"%,d".format(item.price * item.quantity)}")
+                    Text(formatPrice(item.price * item.quantity))
                 }
             }
 
@@ -234,5 +288,13 @@ fun HistoryCard(entry: HistoryEntry) {
                 }
             }
         }
+    }
+}
+
+fun formatPrice(amount: Int): String {
+    return when {
+        amount >= 1_000_000_000 -> "$${"%.1f".format(amount / 1_000_000_000.0)}b"
+        amount >= 1_000_000 -> "$${"%.1f".format(amount / 1_000_000.0)}m"
+        else -> "$${"%,d".format(amount)}"
     }
 }

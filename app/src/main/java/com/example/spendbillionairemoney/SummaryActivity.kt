@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,9 +15,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.CircleShape
 import coil.compose.AsyncImage
 import com.example.spendbillionairemoney.ui.theme.SpendBillionaireMoneyTheme
 import java.io.File
@@ -36,22 +40,33 @@ class SummaryActivity : ComponentActivity() {
             SpendBillionaireMoneyTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Button(
-                            onClick = {
-                                startActivity(Intent(this@SummaryActivity, MainActivity::class.java))
-                                finish()
-                            },
-                            modifier = Modifier.fillMaxWidth()
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                .padding(12.dp)
                         ) {
-                            Text("Return to Home")
+                            IconButton(
+                                onClick = {
+                                    startActivity(Intent(this@SummaryActivity, MainActivity::class.java))
+                                    finish()
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_home),
+                                    contentDescription = "Return Home",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Congratulations",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
                         }
 
-                        Text(
-                            text = "You spent all the money in $elapsedTime seconds!",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-
-                        // Billionaire Image Section
                         val imageModel: Any = remember(billionaireImagePath, billionaireImageResId) {
                             when {
                                 !billionaireImagePath.isNullOrEmpty() && File(billionaireImagePath).exists() -> {
@@ -73,18 +88,68 @@ class SummaryActivity : ComponentActivity() {
                             model = imageModel,
                             contentDescription = billionaireName,
                             modifier = Modifier
-                                .height(160.dp)
-                                .fillMaxWidth(),
-                            contentScale = ContentScale.Fit,
+                                .size(140.dp)
+                                .clip(CircleShape)
+                                .align(Alignment.CenterHorizontally),
+                            contentScale = ContentScale.Crop,
                             placeholder = painterResource(id = R.drawable.placeholder),
                             error = painterResource(id = R.drawable.placeholder)
                         )
 
-                        // Items Bought Section
+                        Text(
+                            text = billionaireName,
+                            style = MaterialTheme.typography.headlineSmall,
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+
+                        Text(
+                            text = "You spent all the money",
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .padding(bottom = 8.dp)
+                                .align(Alignment.CenterHorizontally)
+                        )
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min)
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = "Spent: ${formatPrice(summaryItems.sumOf { it.price.toLong() * it.quantity.toLong() })}")
+                            }
+
+                            Divider(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .width(1.dp)
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = "Time: ${elapsedTime}s")
+                            }
+                        }
+
                         Text(
                             text = "Items Purchased:",
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(top = 16.dp)
+                            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
                         )
 
                         LazyColumn(modifier = Modifier.padding(top = 8.dp)) {
@@ -101,11 +166,11 @@ class SummaryActivity : ComponentActivity() {
 
 @Composable
 fun PurchaseItemRow(item: SummaryItem) {
-    Card(modifier = Modifier.padding(vertical = 4.dp)) {
+    Card(modifier = Modifier.padding(vertical = 6.dp)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Item Image
@@ -120,16 +185,29 @@ fun PurchaseItemRow(item: SummaryItem) {
             )
 
             // Item Details
-            Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
-                Text(text = item.name, style = MaterialTheme.typography.bodyLarge)
+            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                Text(
+                    text = item.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 Text(text = "Qty: ${item.quantity}", style = MaterialTheme.typography.bodySmall)
             }
 
             // Item Total
             Text(
-                text = "$${item.price * item.quantity}",
+                text = formatPrice(item.price.toLong() * item.quantity.toLong()),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
+    }
+}
+
+fun formatPrice(value: Long): String {
+    return when {
+        value >= 1_000_000_000L -> "$${value / 1_000_000_000}b"
+        value >= 1_000_000L -> "$${value / 1_000_000}m"
+        else -> "$$value"
     }
 }

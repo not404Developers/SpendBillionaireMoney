@@ -28,6 +28,8 @@ import com.example.spendbillionairemoney.ui.theme.SpendBillionaireMoneyTheme
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -37,9 +39,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-        // Clear custom billionaires on app launch
-//        val sharedPrefs = getSharedPreferences("custom_billionaires", MODE_PRIVATE)
-//        sharedPrefs.edit().remove("billionaire_list").apply()
 
         setContent {
             SpendBillionaireMoneyTheme {
@@ -98,96 +97,182 @@ fun BillionaireSelectionScreen(
         Billionaire("Jeff Bezos", 100_000_000_000, R.drawable.jeff_bezos)
     )
     val billionaires = listOf(Billionaire("Add New", 0, R.drawable.ic_add)) +
-        customBillionaires +
-        defaultBillionaires
+            customBillionaires +
+            defaultBillionaires
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.weight(1f)
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
-            items(billionaires) { billionaire ->
-                if (billionaire.name == "Add New") {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onAddNewClicked() },
-                        elevation = CardDefaults.cardElevation(4.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_add),
-                                contentDescription = "Add New Billionaire",
-                                modifier = Modifier.size(48.dp)
-                            )
-                        }
-                    }
-                } else {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onBillionaireSelected(billionaire) },
-                        elevation = CardDefaults.cardElevation(4.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(8.dp)) {
-                            val imageFile = billionaire.imagePath?.let { File(it) }
-                            if (imageFile != null && imageFile.exists()) {
-                                AsyncImage(
-                                    model = imageFile,
-                                    contentDescription = billionaire.name,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(120.dp),
-                                    placeholder = painterResource(id = R.drawable.placeholder),
-                                    error = painterResource(id = R.drawable.placeholder)
-                                )
-                            } else {
-                                Image(
-                                    painter = painterResource(id = billionaire.imageResId ?: R.drawable.placeholder),
-                                    contentDescription = billionaire.name,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(120.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(text = billionaire.name, style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                text = "$${billionaire.netWorth / 1_000_000_000} Billion",
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
+            // App title with navigation buttons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(
+                    onClick = {
+                        context.startActivity(Intent(context, HistoryActivity::class.java))
+                    },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_history),
+                        contentDescription = "History",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Text(
+                    text = "Spend Billionaire's Money",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+
+                IconButton(
+                    onClick = {
+                        context.startActivity(Intent(context, ProfileActivity::class.java))
+                    },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_profile),
+                        contentDescription = "Profile",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Text(
+                text = "Select a Billionaire",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(billionaires) { billionaire ->
+                    if (billionaire.name == "Add New") {
+                        AddNewCard(onClick = onAddNewClicked)
+                    } else {
+                        BillionaireCard(
+                            billionaire = billionaire,
+                            onClick = { onBillionaireSelected(billionaire) }
+                        )
                     }
                 }
             }
-        }
 
-        Button(
-            onClick = {
-                context.startActivity(Intent(context, ProfileActivity::class.java))
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        ) {
-            Text("View Profile")
+            Spacer(modifier = Modifier.height(16.dp))
         }
-        Button(
-            onClick = {
-                context.startActivity(Intent(context, HistoryActivity::class.java))
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
+    }
+}
+
+@Composable
+private fun AddNewCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(0.9f)
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("View History")
+            Icon(
+                painter = painterResource(id = R.drawable.ic_add),
+                contentDescription = "Add New Billionaire",
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Create Custom",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
+private fun BillionaireCard(billionaire: Billionaire, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(0.9f)
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(MaterialTheme.shapes.medium),
+                contentAlignment = Alignment.Center
+            ) {
+                val imageFile = billionaire.imagePath?.let { File(it) }
+                if (imageFile != null && imageFile.exists()) {
+                    AsyncImage(
+                        model = imageFile,
+                        contentDescription = billionaire.name,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(id = R.drawable.placeholder),
+                        error = painterResource(id = R.drawable.placeholder)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = billionaire.imageResId ?: R.drawable.placeholder),
+                        contentDescription = billionaire.name,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = billionaire.name,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text(
+                text = "$${"%,d".format(billionaire.netWorth / 1_000_000_000)} Billion",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
