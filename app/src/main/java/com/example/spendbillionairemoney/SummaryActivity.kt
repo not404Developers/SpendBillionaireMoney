@@ -49,7 +49,7 @@ class SummaryActivity : ComponentActivity() {
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(
             this,
-            "ca-app-pub-2318663517302041/5691655191",
+            "ca-app-pub-7229322132319495/7201313459",
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {

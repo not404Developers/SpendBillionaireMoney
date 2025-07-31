@@ -141,7 +141,7 @@ class MainActivity : ComponentActivity() {
         val adRequest = AdRequest.Builder().build()
         RewardedAd.load(
             this,
-            "ca-app-pub-2318663517302041/3009952854",
+            "ca-app-pub-7229322132319495/6706489430",
             adRequest,
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
@@ -178,7 +178,7 @@ fun BillionaireSelectionScreen(
         Billionaire("Steve Ballmer", 152_000_000_000, R.drawable.steve_ballmer, isPremium = true, isHard = true),
         Billionaire("Mark Zuckerberg", 172_000_000_000, R.drawable.mark_zuckerberg),
         Billionaire("Lary Page", 150_000_000_000, R.drawable.larry_page),
-        Billionaire("Warren Buffet", 150_000_000_000, R.drawable.warren_buffet, isPremium = true),
+        Billionaire("Warren Buffet", 150_000_000_000, R.drawable.warren_buffett, isPremium = true),
         Billionaire("Gautam Adani", 70_000_000_000, R.drawable.gautam_adani, isPremium = true),
         Billionaire("Bernard Arnault", 155_000_000_000, R.drawable.bernard_arnault),
         Billionaire("Jack Ma", 34_000_000_000, R.drawable.jack_ma, isHard = true),

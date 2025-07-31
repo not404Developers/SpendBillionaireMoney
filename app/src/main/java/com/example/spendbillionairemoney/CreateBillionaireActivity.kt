@@ -51,7 +51,7 @@ class CreateBillionaireActivity : ComponentActivity() {
         val adRequest = AdRequest.Builder().build()
         RewardedAd.load(
             this,
-            "ca-app-pub-2318663517302041/5382547909",
+            "ca-app-pub-7229322132319495/5888231784",
             adRequest,
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {

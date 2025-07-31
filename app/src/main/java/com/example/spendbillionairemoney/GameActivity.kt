@@ -92,7 +92,6 @@ class GameActivity : ComponentActivity() {
             ItemState(Item("Beach House", 60_000_000, R.drawable.beach_house)),
             ItemState(Item("iPhone 15 Pro Max", 1_500, R.drawable.iphone_15_pro_max)),
             ItemState(Item("Bulletproof SUV", 500_000, R.drawable.bulletproof_suv)),
-            ItemState(Item("Jet (Mid-Range)", 35_000_000, R.drawable.jet)),
             ItemState(Item("Rolex Watch", 75_000, R.drawable.rolex_watch)),
             ItemState(Item("Airship", 250_000_000, R.drawable.airship)),
         )
@@ -181,7 +180,7 @@ class GameActivity : ComponentActivity() {
                     AndroidView(factory = { context ->
                         AdView(context).apply {
                             setAdSize(AdSize.BANNER)
-                            adUnitId = "ca-app-pub-2318663517302041/4943897340"
+                            adUnitId = "ca-app-pub-7229322132319495/5050341571"
                             loadAd(AdRequest.Builder().build())
                         }
                     }, modifier = Modifier
