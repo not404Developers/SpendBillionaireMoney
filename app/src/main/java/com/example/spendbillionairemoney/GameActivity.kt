@@ -1,5 +1,12 @@
 package com.example.spendbillionairemoney
 
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.MobileAds
+import androidx.compose.ui.viewinterop.AndroidView
+import android.widget.FrameLayout
+
 import android.os.Bundle
 import android.content.Intent
 import androidx.activity.ComponentActivity
@@ -24,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -88,6 +96,8 @@ class GameActivity : ComponentActivity() {
             ItemState(Item("Rolex Watch", 75_000, R.drawable.rolex_watch)),
             ItemState(Item("Airship", 250_000_000, R.drawable.airship)),
         )
+
+        MobileAds.initialize(this) {}
 
         setContent {
             val dialogState = showExitDialog
@@ -167,19 +177,29 @@ class GameActivity : ComponentActivity() {
                         .padding(innerPadding)
                         .padding(16.dp)
                 ) {
-                // Exit icon at top-left
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    IconButton(
-                        onClick = { showExitDialog = true },
-                        modifier = Modifier.align(Alignment.TopStart)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_close),
-                            contentDescription = "Exit",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
+                    // Banner Ad at the top
+                    AndroidView(factory = { context ->
+                        AdView(context).apply {
+                            setAdSize(AdSize.BANNER)
+                            adUnitId = "ca-app-pub-2318663517302041/4943897340"
+                            loadAd(AdRequest.Builder().build())
+                        }
+                    }, modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp))
+                    // Exit icon at top-left
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        IconButton(
+                            onClick = { showExitDialog = true },
+                            modifier = Modifier.align(Alignment.TopStart)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_close),
+                                contentDescription = "Exit",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
                     }
-                }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -190,33 +210,23 @@ class GameActivity : ComponentActivity() {
                         modifier = Modifier
                             .size(140.dp)
                             .clip(CircleShape)
+                            .align(Alignment.CenterHorizontally)
                     ) {
-                        when {
-                            !imagePath.isNullOrEmpty() -> {
-                                val imageFile = File(imagePath)
-                                if (imageFile.exists()) {
-                                    AsyncImage(
-                                        model = imageFile,
-                                        contentDescription = name,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                            }
-                            !imageUri.isNullOrEmpty() -> {
-                                AsyncImage(
-                                    model = imageUri,
-                                    contentDescription = name,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                            else -> {
-                                Image(
-                                    painter = painterResource(id = imageResId),
-                                    contentDescription = name,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
+                        val imageFile = imagePath?.let { File(it) }
+                        val imageModel: Any = when {
+                            imageFile?.exists() == true -> imageFile
+                            !imageUri.isNullOrEmpty() -> imageUri
+                            else -> imageResId
                         }
+
+                        AsyncImage(
+                            model = imageModel,
+                            contentDescription = name,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(id = R.drawable.placeholder),
+                            error = painterResource(id = R.drawable.placeholder)
+                        )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(

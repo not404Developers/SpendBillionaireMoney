@@ -43,6 +43,7 @@ android {
 dependencies {
 
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.androidx.runtime.livedata)
     dependencies {
         implementation(libs.androidx.core.ktx)
         implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -55,6 +56,7 @@ dependencies {
         implementation("com.google.code.gson:gson:2.10.1")
         implementation("io.coil-kt:coil-compose:2.5.0")
         implementation("androidx.core:core-splashscreen:1.0.1")
+        implementation("com.google.android.gms:play-services-ads:23.1.0")
         testImplementation(libs.junit)
         androidTestImplementation(libs.androidx.junit)
         androidTestImplementation(libs.androidx.espresso.core)

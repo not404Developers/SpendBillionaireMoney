@@ -270,7 +270,10 @@ fun HistoryCard(entry: HistoryEntry) {
                             }
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("${item.name} x${item.quantity}")
+                        Column {
+                            Text(item.name)
+                            Text("Quantity: ${item.quantity}", style = MaterialTheme.typography.bodySmall)
+                        }
                     }
 
                     // Item Total Price

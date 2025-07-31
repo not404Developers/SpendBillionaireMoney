@@ -1,5 +1,7 @@
 package com.example.spendbillionairemoney
 
+import com.google.android.gms.ads.LoadAdError
+
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -24,6 +26,12 @@ import androidx.compose.foundation.shape.CircleShape
 import coil.compose.AsyncImage
 import com.example.spendbillionairemoney.ui.theme.SpendBillionaireMoneyTheme
 import java.io.File
+import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.FullScreenContentCallback
 
 class SummaryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +44,39 @@ class SummaryActivity : ComponentActivity() {
         val summaryItems = intent.getParcelableArrayListExtra<SummaryItem>("summaryItems")
             ?.filter { it.quantity > 0 } ?: emptyList()
 
+        MobileAds.initialize(this) {}
+
+        val adRequest = AdRequest.Builder().build()
+        InterstitialAd.load(
+            this,
+            "ca-app-pub-2318663517302041/5691655191",
+            adRequest,
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(ad: InterstitialAd) {
+                    ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                        override fun onAdDismissedFullScreenContent() {
+                            // Proceed to show the content after ad is dismissed
+                            showSummaryContent(elapsedTime, billionaireName, billionaireImageResId, billionaireImagePath, summaryItems)
+                        }
+                    }
+                    ad.show(this@SummaryActivity)
+                }
+
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    Log.d("SummaryActivity", "Ad failed to load: $adError")
+                    showSummaryContent(elapsedTime, billionaireName, billionaireImageResId, billionaireImagePath, summaryItems)
+                }
+            }
+        )
+    }
+
+    private fun showSummaryContent(
+        elapsedTime: Int,
+        billionaireName: String,
+        billionaireImageResId: Int,
+        billionaireImagePath: String?,
+        summaryItems: List<SummaryItem>
+    ) {
         setContent {
             SpendBillionaireMoneyTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
